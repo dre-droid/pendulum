@@ -2,6 +2,17 @@ import time
 import RPi.GPIO as GPIO
 import spidev
 
+# LS7366R Commands
+CLR_CNTR = 0x20  # Clear counter
+RD_CNTR = 0x60   # Read counter
+WR_MDR0 = 0x88   # Write to MDR0
+WR_MDR1 = 0x90   # Write to MDR1
+
+# MDR0 config: 4X quadrature, free-running count, no index
+MDR0_CONF = 0b00000011
+# MDR1 config: 4-byte counter, enable counting
+MDR1_CONF = 0b00000000
+
 class FurutaHardware:
     def __init__(self):
         # Motor control setup
@@ -20,13 +31,29 @@ class FurutaHardware:
         self.spi1.open(1, 0)  # Bus 1, Device 0
         self.spi0.max_speed_hz = 1000000
         self.spi1.max_speed_hz = 1000000
+        self.spi0.mode = 0b00
+        self.spi1.mode = 0b00
+        
+        # Initialize encoders
+        self._setup_encoder(self.spi0)
+        self._setup_encoder(self.spi1)
+
+    def _setup_encoder(self, spi):
+        """Configure LS7366R encoder"""
+        spi.xfer2([WR_MDR0, MDR0_CONF])
+        spi.xfer2([WR_MDR1, MDR1_CONF])
+        spi.xfer2([CLR_CNTR])  # Clear counter
 
     def read_encoders(self):
         """Read both encoder values"""
-        # You'll need to adjust this based on your encoder protocol
-        motor_angle = self._read_spi(self.spi0)
-        pendulum_angle = self._read_spi(self.spi1)
+        motor_angle = self._read_encoder(self.spi0)
+        pendulum_angle = self._read_encoder(self.spi1)
         return motor_angle, pendulum_angle
+
+    def _read_encoder(self, spi):
+        """Read encoder value over SPI using LS7366R protocol"""
+        resp = spi.xfer2([RD_CNTR, 0x00, 0x00, 0x00, 0x00])
+        return (resp[1] << 24) | (resp[2] << 16) | (resp[3] << 8) | resp[4]
 
     def set_motor(self, power, direction):
         """Set motor power (-1 to 1) and direction"""
@@ -39,12 +66,6 @@ class FurutaHardware:
         else:
             self.motor_pwm1.ChangeDutyCycle(0)
             self.motor_pwm2.ChangeDutyCycle(duty_cycle)
-
-    def _read_spi(self, spi):
-        """Read encoder value over SPI"""
-        # Placeholder - implement based on your encoder protocol
-        resp = spi.xfer([0x00, 0x00, 0x00, 0x00])
-        return (resp[0] << 24) | (resp[1] << 16) | (resp[2] << 8) | resp[3]
 
     def close(self):
         """Cleanup"""
