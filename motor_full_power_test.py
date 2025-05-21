@@ -23,6 +23,8 @@ pwm.start(0)
 
 # Enable motor driver
 GPIO.output(EN_PIN, GPIO.HIGH)
+time.sleep(2)
+print(GPIO.input(EN_PIN))
 
 def motor_test():
     try:
