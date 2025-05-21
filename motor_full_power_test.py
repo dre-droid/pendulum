@@ -20,7 +20,7 @@ GPIO.setup(EN_PIN, GPIO.OUT)
 GPIO.setup(SF_PIN, GPIO.IN)
 
 #Initialize PWM
-pwm = GPIO.PWM(D2_PIN, 10000)  # 10 kHz frequency
+pwm = GPIO.PWM(D2_PIN, 15000)  # 10 kHz frequency
 pwm.start(0)
 
 # Enable motor driver
@@ -32,21 +32,21 @@ def motor_test():
         # print("SF: ", GPIO.input(SF_PIN))
         # time.sleep(1)
 
-        # Spin forward
-        print("Spinning forward")
-        GPIO.output(IN1_PIN, GPIO.HIGH)
-        GPIO.output(IN2_PIN, GPIO.LOW)
-        print("In1, In2: ", GPIO.input(IN1_PIN), GPIO.input(IN2_PIN))
-        pwm.ChangeDutyCycle(90)
-        time.sleep(1)
-
-        # Spin backward
-        print("Spinning backward")
-        GPIO.output(IN1_PIN, GPIO.LOW)
-        GPIO.output(IN2_PIN, GPIO.HIGH)
-        print("In1, In2: ", GPIO.input(IN1_PIN), GPIO.input(IN2_PIN))
-        pwm.ChangeDutyCycle(90)
-        time.sleep(1)
+        # Loop 10 times alternating forward/backward
+        for i in range(10):
+            # Spin forward at full power
+            print(f"Spinning forward - burst {i+1}")
+            GPIO.output(IN1_PIN, GPIO.HIGH)
+            GPIO.output(IN2_PIN, GPIO.LOW)
+            pwm.ChangeDutyCycle(100)
+            time.sleep(0.2)
+            
+            # Spin backward at full power
+            print(f"Spinning backward - burst {i+1}")
+            GPIO.output(IN1_PIN, GPIO.LOW)
+            GPIO.output(IN2_PIN, GPIO.HIGH)
+            pwm.ChangeDutyCycle(100)
+            time.sleep(0.2)
 
         # Stop
         print("Stopping")
