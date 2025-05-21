@@ -15,34 +15,39 @@ GPIO.setwarnings(False)
 # Initialize pins
 GPIO.setup(IN1_PIN, GPIO.OUT)
 GPIO.setup(IN2_PIN, GPIO.OUT)
-#GPIO.setup(D2_PIN, GPIO.OUT)
+GPIO.setup(D2_PIN, GPIO.OUT)
 GPIO.setup(EN_PIN, GPIO.OUT)
 GPIO.setup(SF_PIN, GPIO.IN)
-# Initialize PWM
-#pwm = GPIO.PWM(D2_PIN, 1000)  # 1 kHz frequency
-#pwm.start(0)
+
+#Initialize PWM
+pwm = GPIO.PWM(D2_PIN, 10000)  # 10 kHz frequency
+pwm.start(0)
 
 # Enable motor driver
 GPIO.output(EN_PIN, GPIO.HIGH)
 
 def motor_test():
     try:
-        #read status flag
-        print("SF: ", GPIO.input(SF_PIN))
-        time.sleep(1)
+        # #read status flag
+        # print("SF: ", GPIO.input(SF_PIN))
+        # time.sleep(1)
 
         # Spin forward
         print("Spinning forward")
         GPIO.output(IN1_PIN, GPIO.HIGH)
         GPIO.output(IN2_PIN, GPIO.LOW)
         print("In1, In2: ", GPIO.input(IN1_PIN), GPIO.input(IN2_PIN))
-        #pwm.ChangeDutyCycle(50)
-        time.sleep(3)
-
-        #read status flag
-        print("SF: ", GPIO.input(SF_PIN))
+        pwm.ChangeDutyCycle(90)
         time.sleep(1)
-        
+
+        # Spin backward
+        print("Spinning backward")
+        GPIO.output(IN1_PIN, GPIO.LOW)
+        GPIO.output(IN2_PIN, GPIO.HIGH)
+        print("In1, In2: ", GPIO.input(IN1_PIN), GPIO.input(IN2_PIN))
+        pwm.ChangeDutyCycle(90)
+        time.sleep(1)
+
         # Stop
         print("Stopping")
         pwm.ChangeDutyCycle(0)
